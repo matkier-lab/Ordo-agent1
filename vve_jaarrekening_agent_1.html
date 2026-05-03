@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ordo · VvE Jaarrekening Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,ital,wght@9..144,0,300;9..144,0,400;9..144,0,500;9..144,0,600;9..144,1,400;9..144,1,500&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #F5F1EA;
+  --paper-2: #EDE8DE;
+  --paper-3: #E3DCCD;
+  --ink: #0E0E0C;
+  --ink-2: #1F1E1B;
+  --ink-3: #4A4844;
+  --ink-4: #7A7771;
+  --ink-5: #A09C94;
+  --rule: #C9C2B4;
+  --rule-soft: #DCD5C5;
+  --oxblood: #7A1A1A;
+  --ox-light: #A03030;
+  --ox-tint: #F1E3E1;
+  --green: #3A5C35;
+  --green-tint: #E5EEE3;
+  --amber: #8B6914;
+  --amber-tint: #F5EDD8;
+  --notion: #1C1C1C;
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--paper);color:var(--ink);font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased;min-height:100vh}
+
+/* ── NAV ── */
+.nav{background:var(--ink);padding:0 40px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.nav-brand{display:flex;align-items:center;gap:10px}
+.nav-glyph{width:18px;height:18px;border:1.5px solid var(--paper);display:flex;align-items:center;justify-content:center}
+.nav-glyph::after{content:'';width:7px;height:7px;background:var(--oxblood)}
+.nav-name{font-family:'Fraunces',serif;font-size:16px;font-weight:500;color:var(--paper);letter-spacing:-0.01em}
+.nav-step{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,.4)}
+
+/* ── STEPS INDICATOR ── */
+.steps{display:flex;align-items:center;gap:0;background:var(--paper-2);border-bottom:1px solid var(--rule);padding:0 40px}
+.step{display:flex;align-items:center;gap:10px;padding:14px 20px 14px 0;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-4);position:relative;cursor:default}
+.step.active{color:var(--ink)}
+.step.done{color:var(--green)}
+.step-num{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--rule);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--ink-4);transition:all .2s;flex-shrink:0}
+.step.active .step-num{border-color:var(--ink);color:var(--ink);background:var(--ink);color:var(--paper)}
+.step.done .step-num{border-color:var(--green);background:var(--green);color:var(--paper)}
+.step-arrow{margin:0 8px;color:var(--rule);font-size:12px}
+
+/* ── LAYOUT ── */
+.page{max-width:1100px;margin:0 auto;padding:48px 40px 80px}
+.screen{display:none}
+.screen.active{display:block}
+
+/* ── TYPOGRAPHY ── */
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--oxblood);font-weight:600;display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.eyebrow::before{content:'';width:24px;height:1px;background:var(--oxblood)}
+.page-title{font-family:'Fraunces',serif;font-weight:400;font-size:42px;line-height:1.0;letter-spacing:-0.025em;margin-bottom:8px}
+.page-title em{font-style:italic;color:var(--oxblood)}
+.page-lead{font-family:'Fraunces',serif;font-style:italic;font-size:17px;color:var(--ink-3);margin-bottom:36px;max-width:600px}
+
+/* ── CARDS ── */
+.card{background:var(--paper);border:1px solid var(--rule);padding:28px;margin-bottom:20px}
+.card-title{font-family:'Fraunces',serif;font-size:18px;font-weight:500;letter-spacing:-0.01em;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--rule)}
+
+/* ── FORM ELEMENTS ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+.form-grid.three{grid-template-columns:1fr 1fr 1fr}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-4);font-weight:600}
+.form-group input,.form-group select,.form-group textarea{background:var(--paper-2);border:1px solid var(--rule);padding:10px 12px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink);outline:none;transition:border-color .15s;-webkit-appearance:none}
+.form-group input:focus,.form-group select:focus{border-color:var(--ink)}
+.form-hint{font-size:11px;color:var(--ink-4);line-height:1.4}
+
+/* ── FILE DROP ── */
+.drop-zone{border:2px dashed var(--rule);padding:48px;text-align:center;cursor:pointer;transition:all .2s;position:relative;background:var(--paper-2);margin-bottom:20px}
+.drop-zone:hover,.drop-zone.drag{border-color:var(--ink);background:var(--paper-3)}
+.drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.drop-icon{font-size:36px;margin-bottom:12px;display:block}
+.drop-title{font-family:'Fraunces',serif;font-size:20px;font-weight:400;margin-bottom:6px}
+.drop-sub{font-size:13px;color:var(--ink-4)}
+.drop-accepted{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-5);letter-spacing:0.08em;text-transform:uppercase;margin-top:10px}
+.drop-zone.has-file{border-color:var(--green);border-style:solid;background:var(--green-tint)}
+.drop-zone.has-file .drop-icon::after{content:'✓'}
+.drop-zone.has-file .drop-title{color:var(--green)}
+
+/* ── TEXTAREA PASTE ── */
+.paste-area{width:100%;min-height:120px;resize:vertical;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;letter-spacing:0.02em}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;border:none;transition:all .15s}
+.btn-primary{background:var(--ink);color:var(--paper)}
+.btn-primary:hover{background:var(--oxblood)}
+.btn-primary:disabled{background:var(--rule);color:var(--ink-4);cursor:not-allowed}
+.btn-secondary{background:transparent;color:var(--ink);border:1px solid var(--ink)}
+.btn-secondary:hover{background:var(--ink);color:var(--paper)}
+.btn-notion{background:var(--notion);color:white}
+.btn-notion:hover{background:#333}
+.btn-notion:disabled{background:var(--rule);color:var(--ink-4);cursor:not-allowed}
+.btn-green{background:var(--green);color:white}
+.btn-green:hover{background:#2a4426}
+.btn-row{display:flex;align-items:center;gap:12px;margin-top:24px;flex-wrap:wrap}
+.btn-arrow::after{content:'→';font-family:'DM Sans',sans-serif;font-size:14px}
+
+/* ── API KEY SETTINGS ── */
+.settings-bar{background:var(--paper-2);border:1px solid var(--rule);padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.settings-bar label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-4);font-weight:600;white-space:nowrap}
+.settings-bar input{flex:1;min-width:200px;background:var(--paper);border:1px solid var(--rule);padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink);outline:none}
+.settings-bar input:focus{border-color:var(--ink)}
+.key-status{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.06em;padding:4px 10px;white-space:nowrap}
+.key-status.set{background:var(--green-tint);color:var(--green)}
+.key-status.unset{background:var(--ox-tint);color:var(--oxblood)}
+
+/* ── TRANSACTION TABLE ── */
+.tx-table{width:100%;border-collapse:collapse;font-size:13.5px}
+.tx-table th{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-4);padding:8px 12px;background:var(--paper-2);border-bottom:1px solid var(--rule);text-align:left;font-weight:600}
+.tx-table td{padding:10px 12px;border-bottom:1px solid var(--rule-soft);vertical-align:middle}
+.tx-table tr:last-child td{border-bottom:none}
+.tx-table tr.unknown{background:var(--amber-tint)}
+.tx-table tr:hover{background:var(--paper-2)}
+.tx-amount{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:13px}
+.tx-amount.credit{color:var(--green)}
+.tx-amount.debit{color:var(--oxblood)}
+.cat-select{background:var(--paper);border:1px solid var(--rule);padding:6px 8px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--ink);width:100%;min-width:160px;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23999'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+.cat-badge{display:inline-flex;align-items:center;gap:4px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.04em;padding:3px 8px;font-weight:500}
+.cat-badge.auto{background:var(--green-tint);color:var(--green)}
+.cat-badge.manual{background:var(--amber-tint);color:var(--amber)}
+.cat-badge.unknown{background:var(--ox-tint);color:var(--oxblood)}
+.tx-filter-bar{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--rule);margin-bottom:0;flex-wrap:wrap}
+.filter-chip{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.06em;padding:5px 12px;cursor:pointer;border:1px solid var(--rule);background:transparent;color:var(--ink-4);transition:all .15s;text-transform:uppercase}
+.filter-chip.active{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.tx-count-badge{background:var(--ox-tint);color:var(--oxblood);font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;font-weight:600}
+
+/* ── SUMMARY CARDS ── */
+.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.summary-card{background:var(--paper-2);border:1px solid var(--rule);padding:16px}
+.summary-card .s-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-4);font-weight:600;margin-bottom:6px}
+.summary-card .s-value{font-family:'Fraunces',serif;font-size:28px;font-weight:400;letter-spacing:-0.02em;color:var(--ink)}
+.summary-card .s-value.pos{color:var(--green)}
+.summary-card .s-value.neg{color:var(--oxblood)}
+.summary-card .s-sub{font-size:12px;color:var(--ink-4);margin-top:4px;font-family:'JetBrains Mono',monospace}
+
+/* ── JAARREKENING OUTPUT ── */
+.jr-section{border-top:1px solid var(--ink);margin-bottom:0}
+.jr-section-header{font-family:'Fraunces',serif;font-size:20px;font-weight:500;padding:16px 0 12px;letter-spacing:-0.01em;display:flex;align-items:center;justify-content:space-between}
+.jr-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--rule-soft);font-size:14px}
+.jr-row:last-child{border-bottom:none}
+.jr-row .k{color:var(--ink-2)}
+.jr-row .v{font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--ink)}
+.jr-row .v.pos{color:var(--green)}
+.jr-row .v.neg{color:var(--oxblood)}
+.jr-row.subtotal{border-top:1px solid var(--rule);padding-top:12px;margin-top:4px}
+.jr-row.subtotal .k{font-weight:600}
+.jr-row.total{border-top:2px solid var(--ink);padding-top:14px;margin-top:6px}
+.jr-row.total .k{font-family:'Fraunces',serif;font-size:16px;font-weight:600}
+.jr-row.total .v{font-size:18px}
+
+/* ── COMPLIANCE ── */
+.compliance-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.score-circle{display:flex;flex-direction:column;align-items:center;justify-content:center;width:80px;height:80px;border-radius:50%;border:3px solid var(--ink);font-family:'Fraunces',serif}
+.score-circle .score-num{font-size:24px;font-weight:500;line-height:1;letter-spacing:-0.02em}
+.score-circle .score-label{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.08em;color:var(--ink-4);text-transform:uppercase}
+.score-circle.good{border-color:var(--green)}
+.score-circle.good .score-num{color:var(--green)}
+.score-circle.bad{border-color:var(--oxblood)}
+.score-circle.bad .score-num{color:var(--oxblood)}
+.compliance-item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--rule-soft);font-size:13.5px}
+.compliance-item:last-child{border-bottom:none}
+.c-status{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;margin-top:1px}
+.c-status.pass{background:var(--green-tint);color:var(--green)}
+.c-status.fail{background:var(--ox-tint);color:var(--oxblood)}
+.c-status.manual{background:var(--amber-tint);color:var(--amber);cursor:pointer}
+.c-ref{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-4);margin-top:2px;letter-spacing:0.04em}
+.c-priority{font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 6px;letter-spacing:0.06em;text-transform:uppercase;font-weight:600}
+.c-priority.verplicht{background:var(--ox-tint);color:var(--oxblood)}
+.c-priority.aanbevolen{background:var(--amber-tint);color:var(--amber)}
+
+/* ── NOTION SAVE ── */
+.notion-panel{background:var(--paper-2);border:1px solid var(--rule);padding:24px;margin-top:24px}
+.notion-panel-title{font-family:'Fraunces',serif;font-size:18px;font-weight:500;margin-bottom:4px}
+.notion-panel-sub{font-size:13px;color:var(--ink-3);margin-bottom:20px}
+.notion-status{font-family:'JetBrains Mono',monospace;font-size:11px;padding:8px 14px;margin-top:12px;display:none}
+.notion-status.success{background:var(--green-tint);color:var(--green);display:block}
+.notion-status.error{background:var(--ox-tint);color:var(--oxblood);display:block}
+.notion-status.loading{background:var(--paper-3);color:var(--ink-4);display:block}
+
+/* ── LOADING ── */
+.loading-overlay{position:fixed;inset:0;background:rgba(245,241,234,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(4px)}
+.loading-overlay.hidden{display:none}
+.loading-glyph{width:40px;height:40px;border:2px solid var(--ink);position:relative;animation:spin 1.4s linear infinite}
+.loading-glyph::after{content:'';width:14px;height:14px;background:var(--oxblood);position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-family:'Fraunces',serif;font-style:italic;font-size:20px;margin-top:20px;color:var(--ink)}
+.loading-sub{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.1em;color:var(--ink-4);margin-top:8px;text-transform:uppercase}
+
+/* ── ALERT ── */
+.alert{padding:14px 16px;margin-bottom:20px;font-size:13.5px;border-left:3px solid;display:none}
+.alert.error{background:var(--ox-tint);border-color:var(--oxblood);color:var(--oxblood);display:block}
+.alert.warning{background:var(--amber-tint);border-color:var(--amber);color:var(--amber);display:block}
+.alert.info{background:var(--green-tint);border-color:var(--green);color:var(--green);display:block}
+
+/* ── DEMO DATA ── */
+.demo-btn{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;background:transparent;border:1px dashed var(--rule);padding:6px 14px;cursor:pointer;color:var(--ink-4);transition:all .15s}
+.demo-btn:hover{border-color:var(--ink);color:var(--ink)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .page{padding:24px 20px 60px}
+  .form-grid,.form-grid.three{grid-template-columns:1fr}
+  .summary-grid{grid-template-columns:1fr 1fr}
+  .steps{padding:0 20px;overflow-x:auto}
+}
+</style>
+</head>
+<body>
+
+<!-- Loading overlay -->
+<div class="loading-overlay hidden" id="loadingOverlay">
+  <div class="loading-glyph"></div>
+  <div class="loading-text" id="loadingText">Agent aan het werk...</div>
+  <div class="loading-sub" id="loadingSubText">Transacties verwerken</div>
+</div>
+
+<!-- Nav -->
+<nav class="nav">
+  <div class="nav-brand">
+    <div class="nav-glyph"></div>
+    <span class="nav-name">Ordo</span>
+  </div>
+  <span class="nav-step" id="navStep">Stap 1 van 3</span>
+</nav>
+
+<!-- Steps indicator -->
+<div class="steps">
+  <div class="step active" id="step-indicator-1">
+    <div class="step-num">1</div>
+    <span>Gegevens</span>
+  </div>
+  <span class="step-arrow">›</span>
+  <div class="step" id="step-indicator-2">
+    <div class="step-num">2</div>
+    <span>Categoriseren</span>
+  </div>
+  <span class="step-arrow">›</span>
+  <div class="step" id="step-indicator-3">
+    <div class="step-num">3</div>
+    <span>Jaarrekening</span>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- API Key settings bar (persistent) -->
+  <div class="settings-bar" id="settingsBar">
+    <label>Anthropic API Key</label>
+    <input type="password" id="apiKey" placeholder="sk-ant-..." oninput="updateKeyStatus()">
+    <span class="key-status unset" id="keyStatus">Niet ingesteld</span>
+    <span style="color:var(--ink-4);font-size:12px;flex:1">·</span>
+    <label>Notion API Key</label>
+    <input type="password" id="notionKey" placeholder="secret_... of ntn_..." oninput="updateKeyStatus()" style="max-width:220px">
+    <label style="margin-left:8px">Database ID</label>
+    <input type="text" id="notionDbId" placeholder="32-char ID" style="max-width:220px">
+    <span class="key-status unset" id="notionStatus">Niet ingesteld</span>
+  </div>
+
+  <!-- ════════════════════════════════
+       SCREEN 1: INPUT
+  ════════════════════════════════ -->
+  <div class="screen active" id="screen1">
+    <div class="eyebrow">Stap 1</div>
+    <h1 class="page-title">VvE-gegevens & <em>banktransacties</em></h1>
+    <p class="page-lead">Vul de VvE-gegevens in en upload of plak uw banktransacties. We doen de rest.</p>
+
+    <div id="alertScreen1"></div>
+
+    <!-- VvE metadata -->
+    <div class="card">
+      <div class="card-title">VvE-gegevens</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>VvE naam</label>
+          <input type="text" id="vveNaam" placeholder="VvE Baarsjesweg 180" value="VvE Baarsjesweg 180">
+        </div>
+        <div class="form-group">
+          <label>KvK-nummer</label>
+          <input type="text" id="kvk" placeholder="87654321" value="87654321">
+        </div>
+        <div class="form-group">
+          <label>Boekjaar</label>
+          <input type="text" id="boekjaar" placeholder="2025" value="2025">
+        </div>
+        <div class="form-group">
+          <label>Aantal appartementsrechten</label>
+          <input type="number" id="nAppartementen" placeholder="8" value="8" min="1">
+        </div>
+      </div>
+      <div class="form-grid three">
+        <div class="form-group">
+          <label>Reservefonds beginstand (€)</label>
+          <input type="number" id="reserveBeginstand" placeholder="18500" value="18500">
+          <span class="form-hint">Stand per 1 januari van het boekjaar</span>
+        </div>
+        <div class="form-group">
+          <label>Herbouwwaarde (€)</label>
+          <input type="number" id="herbouwwaarde" placeholder="900000" value="900000">
+          <span class="form-hint">Voor BW 5:126 minimumcheck</span>
+        </div>
+        <div class="form-group">
+          <label>Bestuurder naam</label>
+          <input type="text" id="bestuurder" placeholder="M. de Vries" value="M. de Vries">
+        </div>
+      </div>
+    </div>
+
+    <!-- Transaction input -->
+    <div class="card">
+      <div class="card-title">Banktransacties</div>
+
+      <!-- File upload -->
+      <div class="drop-zone" id="dropZone">
+        <input type="file" accept=".csv,.json,.txt" id="fileInput" onchange="handleFile(this)">
+        <span class="drop-icon">📂</span>
+        <div class="drop-title">Sleep uw bankexport hiernaartoe</div>
+        <div class="drop-sub">of klik om een bestand te selecteren</div>
+        <div class="drop-accepted">CSV · JSON · TXT — PSD2 export van uw bank</div>
+      </div>
+
+      <div style="text-align:center;padding:8px 0;color:var(--ink-4);font-size:13px;font-style:italic">of plak de data hieronder</div>
+
+      <div class="form-group">
+        <label>Transactiedata (plakken)</label>
+        <textarea class="paste-area form-group input" id="rawData" placeholder="Plak hier uw CSV of JSON export...
+
+Voorbeeld CSV:
+Datum,Omschrijving,Bedrag
+2025-01-15,Bijdrage januari app 1,195.00
+2025-01-15,Bijdrage januari app 2,195.00
+2025-02-01,Verzekering Centraal Beheer,-2500.00
+2025-03-10,Schilderwerk kozijnen,-1840.00"></textarea>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:12px;margin-top:12px">
+        <button class="demo-btn" onclick="loadDemoData()">↓ Laad demo-data (23 transacties)</button>
+        <span style="font-size:12px;color:var(--ink-4)">— geen echt bankaccount nodig voor de test</span>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary btn-arrow" onclick="startCategorise()">Verwerk transacties</button>
+      <span style="font-size:12px;color:var(--ink-4)">Agent parseert en categoriseert automatisch</span>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════
+       SCREEN 2: CATEGORISE
+  ════════════════════════════════ -->
+  <div class="screen" id="screen2">
+    <div class="eyebrow">Stap 2</div>
+    <h1 class="page-title">Controleer de <em>categorisering</em></h1>
+    <p class="page-lead">De agent heeft alle transacties automatisch gecategoriseerd. Controleer de oranje rijen en pas aan waar nodig.</p>
+
+    <div id="alertScreen2"></div>
+
+    <!-- Summary row -->
+    <div class="summary-grid" id="summaryGrid"></div>
+
+    <!-- Filter bar -->
+    <div class="tx-filter-bar">
+      <button class="filter-chip active" onclick="filterTx('all',this)">Alle</button>
+      <button class="filter-chip" onclick="filterTx('unknown',this)">Onbekend <span id="unknownCount" class="tx-count-badge" style="margin-left:4px">0</span></button>
+      <button class="filter-chip" onclick="filterTx('credit',this)">Inkomsten</button>
+      <button class="filter-chip" onclick="filterTx('debit',this)">Uitgaven</button>
+    </div>
+
+    <div style="overflow-x:auto;margin-bottom:24px">
+      <table class="tx-table">
+        <thead>
+          <tr>
+            <th>Datum</th>
+            <th>Omschrijving</th>
+            <th>Bedrag</th>
+            <th>Categorie</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="txTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goTo(1)">← Terug</button>
+      <button class="btn btn-primary btn-arrow" onclick="generateJaarrekening()">Genereer jaarrekening</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════
+       SCREEN 3: JAARREKENING OUTPUT
+  ════════════════════════════════ -->
+  <div class="screen" id="screen3">
+    <div class="eyebrow">Stap 3</div>
+    <h1 class="page-title">Jaarrekening <em id="jrBoekjaarTitle">2025</em></h1>
+    <p class="page-lead" id="jrVveTitle">VvE Baarsjesweg 180 · Concept — ter vaststelling ALV</p>
+
+    <div id="alertScreen3"></div>
+
+    <!-- Two column layout -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px">
+
+      <!-- Exploitatierekening -->
+      <div class="card">
+        <div class="card-title">Exploitatierekening</div>
+        <div id="exploitatieOutput"></div>
+      </div>
+
+      <!-- Reservefonds + Balans -->
+      <div>
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-title">Reservefonds</div>
+          <div id="reservefondsOutput"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Reservefonds check (BW 5:126)</div>
+          <div id="reservefondsCheck"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Balans full width -->
+    <div class="card" style="margin-bottom:24px">
+      <div class="card-title">Balans per 31 december <span id="balansYear"></span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px" id="balansOutput"></div>
+    </div>
+
+    <!-- Compliance -->
+    <div class="card" style="margin-bottom:24px">
+      <div class="card-title">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span>Compliance check — BW 5:126 + Modelreglement</span>
+          <div class="score-circle" id="scoreCircle">
+            <span class="score-num" id="scoreNum">—</span>
+            <span class="score-label">Score</span>
+          </div>
+        </div>
+      </div>
+      <div id="complianceOutput"></div>
+    </div>
+
+    <!-- Notion save panel -->
+    <div class="notion-panel">
+      <div class="notion-panel-title">Opslaan in Notion</div>
+      <div class="notion-panel-sub">Sla deze jaarrekening op als record in uw Notion-database. Vereist Notion API key en database ID (ingesteld bovenaan).</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Run notitie (optioneel)</label>
+          <input type="text" id="runNote" placeholder="Eerste test met demo-data — concept">
+        </div>
+        <div class="form-group">
+          <label>Status</label>
+          <select id="runStatus">
+            <option value="Concept">Concept</option>
+            <option value="Gecontroleerd">Gecontroleerd door kascommissie</option>
+            <option value="Vastgesteld">Vastgesteld door ALV</option>
+          </select>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-notion" onclick="saveToNotion()">📋 Opslaan in Notion</button>
+        <button class="btn btn-green" onclick="printJaarrekening()">🖨 Afdrukken / PDF</button>
+        <button class="btn btn-secondary" onclick="goTo(2)">← Terug naar categoriseren</button>
+      </div>
+      <div class="notion-status" id="notionSaveStatus"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════
+let state = {
+  transactions: [],      // CategorisedTransaction[]
+  jaarrekening: null,    // Jaarrekening output
+  compliance: null,      // Compliance check output
+  meta: {}
+};
+
+const CATEGORIES = [
+  'Bijdragen leden',
+  'Onderhoud & reparaties',
+  'Verzekering',
+  'Administratie',
+  'Energie & utilities',
+  'Reservefonds',
+  'Overige baten',
+  'Overige lasten',
+  'Onbekend'
+];
+
+// ════════════════════════════════════════════════════
+// DEMO DATA
+// ════════════════════════════════════════════════════
+function loadDemoData() {
+  const demo = `Datum,Omschrijving,Bedrag
+2025-01-15,Bijdrage januari appartement 1 - A. de Vries,195.00
+2025-01-15,Bijdrage januari appartement 2 - B. Janssen,195.00
+2025-01-15,Bijdrage januari appartement 3 - C. Bakker,195.00
+2025-01-15,Bijdrage januari appartement 4 - D. Smit,195.00
+2025-01-15,Bijdrage januari appartement 5 - E. van der Berg,195.00
+2025-01-15,Bijdrage januari appartement 6 - F. Hendriks,195.00
+2025-01-15,Bijdrage januari appartement 7 - G. Peters,195.00
+2025-01-15,Bijdrage januari appartement 8 - H. Visser,195.00
+2025-02-01,Verzekering gebouw Centraal Beheer 2025,-2500.00
+2025-02-15,Bijdragen februari alle appartementen,1560.00
+2025-03-10,Schilderwerk kozijnen voorgevel - Van Dijk,-1840.00
+2025-03-15,Bijdragen maart alle appartementen,1560.00
+2025-04-01,Administratiekosten Q1 VvE beheer,-350.00
+2025-04-15,Bijdragen april alle appartementen,1560.00
+2025-05-15,Bijdragen mei alle appartementen,1560.00
+2025-06-01,Schoonmaak trappenhuis Q2 - CleanPro,-420.00
+2025-06-15,Bijdragen juni alle appartementen,1560.00
+2025-07-15,Bijdragen juli alle appartementen,1560.00
+2025-08-01,Onderhoud CV-ketel gemeenschappelijk,-680.00
+2025-08-15,Bijdragen augustus alle appartementen,1560.00
+2025-09-15,Bijdragen september alle appartementen,1560.00
+2025-10-01,Energie gemeenschappelijke ruimtes Q3 Vattenfall,-310.00
+2025-10-15,Bijdragen oktober alle appartementen,1560.00
+2025-11-15,Bijdragen november alle appartementen,1560.00
+2025-12-01,Reservefonds storting Q4,-1200.00
+2025-12-15,Bijdragen december alle appartementen,1560.00`;
+  document.getElementById('rawData').value = demo;
+  showAlert('screen1', 'Demo-data geladen — 26 transacties klaar om te verwerken.', 'info');
+}
+
+// ════════════════════════════════════════════════════
+// KEY STATUS
+// ════════════════════════════════════════════════════
+function updateKeyStatus() {
+  const key = document.getElementById('apiKey').value.trim();
+  const notionKey = document.getElementById('notionKey').value.trim();
+  const notionDb = document.getElementById('notionDbId').value.trim();
+  
+  const ks = document.getElementById('keyStatus');
+  if (key.startsWith('sk-ant-') && key.length > 20) {
+    ks.textContent = '✓ Ingesteld';
+    ks.className = 'key-status set';
+  } else {
+    ks.textContent = 'Niet ingesteld';
+    ks.className = 'key-status unset';
+  }
+  
+  const ns = document.getElementById('notionStatus');
+  const notionKeyValid = notionKey.length > 10 &&
+    (notionKey.startsWith('secret_') || notionKey.startsWith('ntn_'));
+  if (notionKeyValid && notionDb.length > 10) {
+    ns.textContent = '✓ Ingesteld';
+    ns.className = 'key-status set';
+  } else if (notionKeyValid && notionDb.length <= 10) {
+    ns.textContent = 'Key ✓ — vul Database ID in';
+    ns.className = 'key-status unset';
+  } else {
+    ns.textContent = 'Niet ingesteld';
+    ns.className = 'key-status unset';
+  }
+}
+
+// ════════════════════════════════════════════════════
+// FILE HANDLER
+// ════════════════════════════════════════════════════
+function handleFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('rawData').value = e.target.result;
+    const dz = document.getElementById('dropZone');
+    dz.classList.add('has-file');
+    dz.querySelector('.drop-title').textContent = file.name;
+    showAlert('screen1', `Bestand geladen: ${file.name} (${Math.round(file.size/1024)} KB)`, 'info');
+  };
+  reader.readAsText(file);
+}
+
+// Drag and drop
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
+dz.addEventListener('drop', e => {
+  e.preventDefault();
+  dz.classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file) {
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    document.getElementById('fileInput').files = dt.files;
+    handleFile(document.getElementById('fileInput'));
+  }
+});
+
+// ════════════════════════════════════════════════════
+// KEYWORD CATEGORISATION (client-side, fast)
+// ════════════════════════════════════════════════════
+function keywordCategory(description, amount) {
+  const d = description.toLowerCase();
+  const pos = amount >= 0;
+  
+  if (pos && /bijdrag|contribut|servicekosten|vve/.test(d)) return { cat: 'Bijdragen leden', conf: 'high' };
+  if (pos && /rente|interest/.test(d)) return { cat: 'Overige baten', conf: 'high' };
+  if (/reserv|spaarre/.test(d)) return { cat: 'Reservefonds', conf: 'high' };
+  if (!pos && /onderhoud|reparati|schilder|loodgi|dak|lift|schoonma|kozijn|gevel/.test(d)) return { cat: 'Onderhoud & reparaties', conf: 'high' };
+  if (!pos && /verzeker|allianz|centraal beheer|achmea/.test(d)) return { cat: 'Verzekering', conf: 'high' };
+  if (!pos && /admin|beheer|notaris|accountant|boekhou/.test(d)) return { cat: 'Administratie', conf: 'high' };
+  if (!pos && /gas|elektr|water|energie|nuon|vattenfall|eneco/.test(d)) return { cat: 'Energie & utilities', conf: 'high' };
+  if (pos) return { cat: 'Overige baten', conf: 'low' };
+  if (!pos) return { cat: 'Overige lasten', conf: 'low' };
+  return { cat: 'Onbekend', conf: null };
+}
+
+function parseCSV(raw) {
+  const lines = raw.trim().split('\n').filter(l => l.trim());
+  const transactions = [];
+  let idCounter = 0;
+  
+  // Detect if first line is header
+  const firstLine = lines[0].toLowerCase();
+  const startIdx = (firstLine.includes('datum') || firstLine.includes('date') || firstLine.includes('omschrijving')) ? 1 : 0;
+  
+  for (let i = startIdx; i < lines.length; i++) {
+    const parts = lines[i].split(',').map(p => p.trim().replace(/^"|"$/g, ''));
+    if (parts.length < 2) continue;
+    
+    // Try to detect columns: date, description, amount
+    let date = '', desc = '', amountStr = '';
+    
+    if (parts.length >= 3) {
+      // Assume: date, description, amount
+      date = parts[0];
+      desc = parts[1];
+      amountStr = parts[2];
+    } else {
+      desc = parts[0];
+      amountStr = parts[1];
+      date = new Date().toISOString().split('T')[0];
+    }
+    
+    // Parse amount — handle European format
+    amountStr = amountStr.replace(/\s/g, '').replace(/[€$]/g, '');
+    // Handle 1.920,00 format
+    if (/\d+\.\d{3},\d{2}/.test(amountStr)) {
+      amountStr = amountStr.replace(/\./g, '').replace(',', '.');
+    } else {
+      amountStr = amountStr.replace(',', '.');
+    }
+    // Handle trailing minus: 1920-
+    if (amountStr.endsWith('-')) amountStr = '-' + amountStr.slice(0, -1);
+    
+    const amount = parseFloat(amountStr);
+    if (isNaN(amount)) continue;
+    
+    const { cat, conf } = keywordCategory(desc, amount);
+    
+    transactions.push({
+      id: idCounter++,
+      date: date || new Date().toISOString().split('T')[0],
+      description: desc,
+      amount: amount,
+      category: cat,
+      categoryConfidence: conf,
+      autoClassified: cat !== 'Onbekend'
+    });
+  }
+  return transactions;
+}
+
+function parseJSON(raw) {
+  try {
+    const data = JSON.parse(raw);
+    const arr = Array.isArray(data) ? data : data.transactions || data.data || [];
+    return arr.map((t, i) => {
+      const amount = parseFloat(t.amount || t.bedrag || t.Bedrag || 0);
+      const desc = t.description || t.omschrijving || t.Omschrijving || t.description || '';
+      const { cat, conf } = keywordCategory(desc, amount);
+      return {
+        id: i,
+        date: t.date || t.datum || t.Datum || '',
+        description: desc,
+        amount,
+        category: cat,
+        categoryConfidence: conf,
+        autoClassified: cat !== 'Onbekend'
+      };
+    });
+  } catch(e) {
+    return null;
+  }
+}
+
+// ════════════════════════════════════════════════════
+// STEP 1 → 2: PARSE + CATEGORISE
+// ════════════════════════════════════════════════════
+async function startCategorise() {
+  clearAlert('screen1');
+  
+  const raw = document.getElementById('rawData').value.trim();
+  if (!raw) {
+    showAlert('screen1', 'Upload of plak uw banktransacties voordat u verder gaat.', 'error');
+    return;
+  }
+  
+  // Collect meta
+  state.meta = {
+    vveNaam: document.getElementById('vveNaam').value || 'VvE',
+    kvk: document.getElementById('kvk').value || '',
+    boekjaar: document.getElementById('boekjaar').value || '2025',
+    nAppartementen: parseInt(document.getElementById('nAppartementen').value) || 1,
+    reserveBeginstand: parseFloat(document.getElementById('reserveBeginstand').value) || 0,
+    herbouwwaarde: parseFloat(document.getElementById('herbouwwaarde').value) || 0,
+    bestuurder: document.getElementById('bestuurder').value || ''
+  };
+  
+  showLoading('Transacties verwerken...', 'Parsing + keyword categorisatie');
+  
+  await sleep(400);
+  
+  // Parse
+  let transactions = null;
+  const trimmed = raw.trim();
+  if (trimmed.startsWith('[') || trimmed.startsWith('{')) {
+    transactions = parseJSON(raw);
+  }
+  if (!transactions || transactions.length === 0) {
+    transactions = parseCSV(raw);
+  }
+  
+  if (!transactions || transactions.length === 0) {
+    hideLoading();
+    showAlert('screen1', 'Kon geen transacties vinden in de data. Controleer het formaat (CSV of JSON).', 'error');
+    return;
+  }
+  
+  // If API key is set, enhance with Claude
+  const apiKey = document.getElementById('apiKey').value.trim();
+  if (apiKey.startsWith('sk-ant-')) {
+    updateLoadingText('Claude categoriseert onbekende transacties...', 'Anthropic API');
+    await enhanceWithClaude(transactions, apiKey);
+  }
+  
+  state.transactions = transactions;
+  hideLoading();
+  renderCategoriseScreen();
+  goTo(2);
+}
+
+// ════════════════════════════════════════════════════
+// OPTIONAL: ENHANCE WITH CLAUDE API
+// ════════════════════════════════════════════════════
+async function enhanceWithClaude(transactions, apiKey) {
+  const unknowns = transactions.filter(t => t.category === 'Onbekend' || t.categoryConfidence === 'low');
+  if (unknowns.length === 0) return;
+  
+  try {
+    const prompt = `Je bent een VvE financieel agent. Categoriseer deze banktransacties van een Nederlandse VvE.
+
+Gebruik ALLEEN deze categorieën:
+- Bijdragen leden (bijdragen van eigenaren)
+- Onderhoud & reparaties (onderhoud, schilder, loodgieter, dakwerk)
+- Verzekering (verzekeringskosten)
+- Administratie (beheer, notaris, accountant)
+- Energie & utilities (gas, elektriciteit, water)
+- Reservefonds (stortingen/onttrekkingen reservefonds)
+- Overige baten (positief, niet elders)
+- Overige lasten (negatief, niet elders)
+
+Transacties om te categoriseren:
+${unknowns.map(t => `ID:${t.id} | ${t.date} | ${t.description} | ${t.amount > 0 ? '+' : ''}${t.amount}`).join('\n')}
+
+Geef ALLEEN een JSON array terug: [{"id": 0, "category": "..."}]
+Geen andere tekst.`;
+
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    
+    if (!resp.ok) return;
+    const data = await resp.json();
+    const text = data.content[0].text.trim();
+    
+    // Extract JSON array from response
+    const match = text.match(/\[[\s\S]*\]/);
+    if (!match) return;
+    
+    const suggestions = JSON.parse(match[0]);
+    suggestions.forEach(s => {
+      const tx = transactions.find(t => t.id === s.id);
+      if (tx && CATEGORIES.includes(s.category)) {
+        tx.category = s.category;
+        tx.categoryConfidence = 'medium';
+        tx.autoClassified = true;
+      }
+    });
+  } catch(e) {
+    console.warn('Claude enhancement failed, using keyword categorisation only:', e);
+  }
+}
+
+// ════════════════════════════════════════════════════
+// RENDER CATEGORISE SCREEN
+// ════════════════════════════════════════════════════
+function renderCategoriseScreen() {
+  const txs = state.transactions;
+  
+  // Summary cards
+  const totalCredit = txs.filter(t => t.amount > 0).reduce((s,t) => s + t.amount, 0);
+  const totalDebit = txs.filter(t => t.amount < 0).reduce((s,t) => s + t.amount, 0);
+  const unknownCount = txs.filter(t => t.category === 'Onbekend').length;
+  
+  document.getElementById('summaryGrid').innerHTML = `
+    <div class="summary-card">
+      <div class="s-label">Transacties</div>
+      <div class="s-value">${txs.length}</div>
+      <div class="s-sub">totaal geladen</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-label">Inkomsten</div>
+      <div class="s-value pos">${fmtEur(totalCredit)}</div>
+      <div class="s-sub">totaal credit</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-label">Uitgaven</div>
+      <div class="s-value neg">${fmtEur(Math.abs(totalDebit))}</div>
+      <div class="s-sub">totaal debet</div>
+    </div>
+    <div class="summary-card">
+      <div class="s-label">Onbekend</div>
+      <div class="s-value ${unknownCount > 0 ? 'neg' : 'pos'}">${unknownCount}</div>
+      <div class="s-sub">te controleren</div>
+    </div>
+  `;
+  
+  document.getElementById('unknownCount').textContent = unknownCount;
+  renderTxTable('all');
+}
+
+function renderTxTable(filter) {
+  const txs = state.transactions;
+  let filtered = txs;
+  if (filter === 'unknown') filtered = txs.filter(t => t.category === 'Onbekend');
+  else if (filter === 'credit') filtered = txs.filter(t => t.amount > 0);
+  else if (filter === 'debit') filtered = txs.filter(t => t.amount < 0);
+  
+  const tbody = document.getElementById('txTableBody');
+  tbody.innerHTML = filtered.map(t => `
+    <tr class="${t.category === 'Onbekend' ? 'unknown' : ''}" id="tx-row-${t.id}">
+      <td style="color:var(--ink-4);font-family:'JetBrains Mono',monospace;font-size:12px;white-space:nowrap">${t.date}</td>
+      <td style="max-width:300px">${t.description}</td>
+      <td class="tx-amount ${t.amount >= 0 ? 'credit' : 'debit'}" style="white-space:nowrap">
+        ${t.amount >= 0 ? '+' : ''}${fmtEur(t.amount)}
+      </td>
+      <td>
+        <select class="cat-select" onchange="updateCategory(${t.id}, this.value)">
+          ${CATEGORIES.map(c => `<option value="${c}" ${c === t.category ? 'selected' : ''}>${c}</option>`).join('')}
+        </select>
+      </td>
+      <td>
+        <span class="cat-badge ${t.categoryConfidence === 'high' ? 'auto' : t.category === 'Onbekend' ? 'unknown' : 'manual'}">
+          ${t.categoryConfidence === 'high' ? '✓ Auto' : t.category === 'Onbekend' ? '? Onbekend' : '~ Medium'}
+        </span>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function filterTx(type, btn) {
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  renderTxTable(type);
+}
+
+function updateCategory(id, newCat) {
+  const tx = state.transactions.find(t => t.id === id);
+  if (tx) {
+    tx.category = newCat;
+    tx.autoClassified = false;
+    tx.categoryConfidence = 'high';
+    // Update unknown count
+    const unknownCount = state.transactions.filter(t => t.category === 'Onbekend').length;
+    document.getElementById('unknownCount').textContent = unknownCount;
+    const badge = document.querySelector(`#tx-row-${id} .cat-badge`);
+    if (badge) {
+      badge.className = 'cat-badge manual';
+      badge.textContent = '✎ Handmatig';
+    }
+    const row = document.getElementById(`tx-row-${id}`);
+    if (row) row.classList.remove('unknown');
+  }
+}
+
+// ════════════════════════════════════════════════════
+// STEP 2 → 3: GENERATE JAARREKENING
+// ════════════════════════════════════════════════════
+async function generateJaarrekening() {
+  clearAlert('screen2');
+  
+  const unknownCount = state.transactions.filter(t => t.category === 'Onbekend').length;
+  if (unknownCount > 0) {
+    showAlert('screen2', `Er zijn nog ${unknownCount} onbekende transacties. Categoriseer ze eerst of kies "Overige lasten" / "Overige baten".`, 'warning');
+  }
+  
+  showLoading('Jaarrekening genereren...', 'Aggregeren + compliance check');
+  await sleep(300);
+  
+  const txs = state.transactions;
+  const meta = state.meta;
+  
+  // Aggregate by category
+  const agg = {};
+  CATEGORIES.forEach(c => agg[c] = 0);
+  txs.forEach(t => {
+    if (agg[t.category] !== undefined) agg[t.category] += t.amount;
+    else agg['Overige lasten'] += t.amount;
+  });
+  
+  // Exploitatie
+  const baten = {
+    bijdragenLeden: Math.max(0, agg['Bijdragen leden']),
+    overigeBaten: Math.max(0, agg['Overige baten']),
+    totaal: 0
+  };
+  baten.totaal = baten.bijdragenLeden + baten.overigeBaten;
+  
+  const lasten = {
+    onderhoud: Math.abs(Math.min(0, agg['Onderhoud & reparaties'])),
+    verzekering: Math.abs(Math.min(0, agg['Verzekering'])),
+    administratie: Math.abs(Math.min(0, agg['Administratie'])),
+    energie: Math.abs(Math.min(0, agg['Energie & utilities'])),
+    overigeLasten: Math.abs(Math.min(0, agg['Overige lasten'])),
+    totaal: 0
+  };
+  lasten.totaal = lasten.onderhoud + lasten.verzekering + lasten.administratie + lasten.energie + lasten.overigeLasten;
+  
+  const resultaat = baten.totaal - lasten.totaal;
+  
+  // Reservefonds
+  const reserveStortingen = Math.abs(Math.min(0, agg['Reservefonds']));
+  const reserveOnttrekkingen = Math.max(0, agg['Reservefonds']);
+  const reserveEindstand = meta.reserveBeginstand + reserveStortingen - reserveOnttrekkingen;
+  
+  // Balans (simplified)
+  const exploitatierekening = resultaat;
+  const activa = {
+    exploitatierekening: Math.max(0, exploitatierekening),
+    reserverekening: reserveEindstand,
+    totaal: 0
+  };
+  activa.totaal = activa.exploitatierekening + activa.reserverekening;
+  
+  const passiva = {
+    reservefonds: reserveEindstand,
+    exploitatieresultaat: resultaat,
+    totaal: 0
+  };
+  passiva.totaal = passiva.reservefonds + Math.max(0, passiva.exploitatieresultaat);
+  
+  state.jaarrekening = {
+    exploitatie: { baten, lasten, resultaat },
+    reservefonds: {
+      beginstand: meta.reserveBeginstand,
+      stortingen: reserveStortingen,
+      onttrekkingen: reserveOnttrekkingen,
+      eindstand: reserveEindstand
+    },
+    balans: { activa, passiva }
+  };
+  
+  // Run compliance
+  state.compliance = runComplianceChecks(state.jaarrekening, meta);
+  
+  // Optionally enhance with Claude if API key set
+  const apiKey = document.getElementById('apiKey').value.trim();
+  if (apiKey.startsWith('sk-ant-') && meta.vveNaam) {
+    updateLoadingText('Claude verifieert de output...', 'Validatie');
+    await verifiyWithClaude(apiKey);
+  }
+  
+  hideLoading();
+  renderJaarrekeningScreen();
+  goTo(3);
+}
+
+async function verifiyWithClaude(apiKey) {
+  try {
+    const jr = state.jaarrekening;
+    const prompt = `Controleer deze VvE jaarrekening beknopt op fouten of bijzonderheden.
+
+Exploitatie:
+- Baten: €${jr.exploitatie.baten.totaal.toFixed(2)}
+- Lasten: €${jr.exploitatie.lasten.totaal.toFixed(2)}
+- Resultaat: €${jr.exploitatie.resultaat.toFixed(2)}
+
+Reservefonds:
+- Beginstand: €${jr.reservefonds.beginstand.toFixed(2)}
+- Stortingen: €${jr.reservefonds.stortingen.toFixed(2)}
+- Eindstand: €${jr.reservefonds.eindstand.toFixed(2)}
+
+Geef maximaal 2 zinnen feedback als er iets opvalt. Als alles klopt, zeg dat in 1 zin.`;
+
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 300,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    if (!resp.ok) return;
+    const data = await resp.json();
+    state.claudeVerification = data.content[0].text;
+  } catch(e) {
+    console.warn('Verification failed:', e);
+  }
+}
+
+// ════════════════════════════════════════════════════
+// COMPLIANCE CHECKS
+// ════════════════════════════════════════════════════
+function runComplianceChecks(jr, meta) {
+  const checks = [];
+  const minReserve = meta.herbouwwaarde * 0.005;
+  
+  // BW 5:126 — Wettelijke basisvereisten
+  checks.push({ id:'bw1', cat:'BW 5:126', title:'Reservefonds aanwezig', ref:'BW 5:126 lid 1', priority:'verplicht',
+    status: jr.reservefonds.eindstand > 0 ? 'pass' : 'fail' });
+  checks.push({ id:'bw2', cat:'BW 5:126', title:`Reservefonds ≥ 0,5% herbouwwaarde (min. ${fmtEur(minReserve)})`, ref:'BW 5:126 lid 2', priority:'verplicht',
+    status: jr.reservefonds.eindstand >= minReserve ? 'pass' : 'fail' });
+  checks.push({ id:'bw3', cat:'BW 5:126', title:'Exploitatierekening aanwezig', ref:'BW 5:126 lid 3', priority:'verplicht',
+    status: jr.exploitatie.baten.totaal > 0 ? 'pass' : 'fail' });
+  checks.push({ id:'bw4', cat:'BW 5:126', title:'Jaarlijkse bijdragen van leden ontvangen', ref:'BW 5:126 lid 1', priority:'verplicht',
+    status: jr.exploitatie.baten.bijdragenLeden > 0 ? 'pass' : 'fail' });
+  checks.push({ id:'bw5', cat:'BW 5:126', title:'Balans sluit (activa = passiva indicatief)', ref:'BW 5:126', priority:'aanbevolen',
+    status: Math.abs(jr.balans.activa.totaal - jr.balans.passiva.totaal) < 1 ? 'pass' : 'manual' });
+  checks.push({ id:'bw6', cat:'BW 5:126', title:'Reservefonds separaat van exploitatierekening', ref:'BW 5:126 lid 4', priority:'verplicht',
+    status: jr.reservefonds.beginstand > 0 ? 'pass' : 'manual' });
+  checks.push({ id:'bw7', cat:'BW 5:126', title:'KvK-registratie aanwezig', ref:'BW 5:126 + KvK', priority:'verplicht',
+    status: meta.kvk && meta.kvk.length > 5 ? 'pass' : 'fail' });
+  
+  // Modelreglement
+  checks.push({ id:'mr1', cat:'Modelreglement', title:'Jaarrekening ter vaststelling ALV voorgelegd', ref:'MR 2006/2017 art. 38', priority:'verplicht',
+    status: 'manual' });
+  checks.push({ id:'mr2', cat:'Modelreglement', title:'Kascommissie aangewezen of accountant ingeschakeld', ref:'MR 2006/2017 art. 39', priority:'verplicht',
+    status: 'manual' });
+  checks.push({ id:'mr3', cat:'Modelreglement', title:'Boekjaar conform statuten (1 jan – 31 dec)', ref:'MR art. 36', priority:'verplicht',
+    status: 'pass' });
+  checks.push({ id:'mr4', cat:'Modelreglement', title:'Decharge bestuur geagendeerd voor ALV', ref:'MR art. 38 lid 3', priority:'aanbevolen',
+    status: 'manual' });
+  checks.push({ id:'mr5', cat:'Modelreglement', title:'Begroting volgend jaar vastgesteld', ref:'MR art. 40', priority:'aanbevolen',
+    status: 'manual' });
+  
+  // Inhoud & volledigheid
+  checks.push({ id:'iv1', cat:'Volledigheid', title:'VvE naam en KvK-nummer vermeld', ref:'Formeel vereiste', priority:'verplicht',
+    status: meta.vveNaam && meta.kvk ? 'pass' : 'fail' });
+  checks.push({ id:'iv2', cat:'Volledigheid', title:'Boekjaar en datum correct vermeld', ref:'Formeel vereiste', priority:'verplicht',
+    status: meta.boekjaar ? 'pass' : 'fail' });
+  checks.push({ id:'iv3', cat:'Volledigheid', title:'Aantal appartementsrechten vermeld', ref:'MR vereiste', priority:'aanbevolen',
+    status: meta.nAppartementen > 0 ? 'pass' : 'fail' });
+  checks.push({ id:'iv4', cat:'Volledigheid', title:'Verzekering kostenpost aanwezig', ref:'BW 5:112', priority:'verplicht',
+    status: jr.exploitatie.lasten.verzekering > 0 ? 'pass' : 'fail' });
+  checks.push({ id:'iv5', cat:'Volledigheid', title:'Onderhoud kostenpost aanwezig', ref:'Beheer vereiste', priority:'aanbevolen',
+    status: jr.exploitatie.lasten.onderhoud > 0 ? 'pass' : 'manual' });
+  checks.push({ id:'iv6', cat:'Volledigheid', title:'Reservefonds overzicht compleet (begin + mutaties + eind)', ref:'BW 5:126', priority:'verplicht',
+    status: jr.reservefonds.beginstand !== undefined && jr.reservefonds.eindstand !== undefined ? 'pass' : 'fail' });
+  
+  // Formele vereisten
+  checks.push({ id:'fv1', cat:'Formeel', title:'Handtekening bestuurder aanwezig', ref:'BW vereiste', priority:'verplicht',
+    status: 'manual' });
+  checks.push({ id:'fv2', cat:'Formeel', title:'Datum ondertekening vermeld', ref:'Formeel', priority:'verplicht',
+    status: 'manual' });
+  checks.push({ id:'fv3', cat:'Formeel', title:'Stempel/paraaf kascommissie', ref:'MR art. 39', priority:'aanbevolen',
+    status: 'manual' });
+  checks.push({ id:'fv4', cat:'Formeel', title:'Notulen vorige ALV met besluiten beschikbaar', ref:'MR art. 41', priority:'aanbevolen',
+    status: 'manual' });
+  
+  const passed = checks.filter(c => c.status === 'pass').length;
+  const total = checks.length;
+  
+  return { items: checks, score: passed, total, pct: Math.round((passed / total) * 100) };
+}
+
+// ════════════════════════════════════════════════════
+// RENDER JAARREKENING SCREEN
+// ════════════════════════════════════════════════════
+function renderJaarrekeningScreen() {
+  const jr = state.jaarrekening;
+  const meta = state.meta;
+  
+  document.getElementById('jrBoekjaarTitle').textContent = meta.boekjaar;
+  document.getElementById('jrVveTitle').textContent = `${meta.vveNaam} · KvK ${meta.kvk} · Concept — ter vaststelling ALV`;
+  document.getElementById('balansYear').textContent = meta.boekjaar;
+  
+  // Claude verification alert
+  if (state.claudeVerification) {
+    showAlert('screen3', `Claude verificatie: ${state.claudeVerification}`, 'info');
+  }
+  
+  // Exploitatierekening
+  const ex = jr.exploitatie;
+  document.getElementById('exploitatieOutput').innerHTML = `
+    <div class="jr-row"><span class="k">Bijdragen leden</span><span class="v">${fmtEur(ex.baten.bijdragenLeden)}</span></div>
+    <div class="jr-row"><span class="k">Overige baten</span><span class="v">${fmtEur(ex.baten.overigeBaten)}</span></div>
+    <div class="jr-row subtotal"><span class="k">Totaal baten</span><span class="v pos">${fmtEur(ex.baten.totaal)}</span></div>
+    <div style="height:12px"></div>
+    ${ex.lasten.onderhoud > 0 ? `<div class="jr-row"><span class="k">Onderhoud & reparaties</span><span class="v neg">− ${fmtEur(ex.lasten.onderhoud)}</span></div>` : ''}
+    ${ex.lasten.verzekering > 0 ? `<div class="jr-row"><span class="k">Verzekering</span><span class="v neg">− ${fmtEur(ex.lasten.verzekering)}</span></div>` : ''}
+    ${ex.lasten.administratie > 0 ? `<div class="jr-row"><span class="k">Administratie</span><span class="v neg">− ${fmtEur(ex.lasten.administratie)}</span></div>` : ''}
+    ${ex.lasten.energie > 0 ? `<div class="jr-row"><span class="k">Energie & utilities</span><span class="v neg">− ${fmtEur(ex.lasten.energie)}</span></div>` : ''}
+    ${ex.lasten.overigeLasten > 0 ? `<div class="jr-row"><span class="k">Overige lasten</span><span class="v neg">− ${fmtEur(ex.lasten.overigeLasten)}</span></div>` : ''}
+    <div class="jr-row subtotal"><span class="k">Totaal lasten</span><span class="v neg">− ${fmtEur(ex.lasten.totaal)}</span></div>
+    <div class="jr-row total"><span class="k">Resultaat</span><span class="v ${ex.resultaat >= 0 ? 'pos' : 'neg'}">${ex.resultaat >= 0 ? '+' : '− '} ${fmtEur(Math.abs(ex.resultaat))}</span></div>
+    <div style="font-size:12px;color:var(--ink-4);margin-top:10px;font-family:'JetBrains Mono',monospace">
+      Per appartement: ${fmtEur(ex.resultaat / meta.nAppartementen)} / jaar
+    </div>
+  `;
+  
+  // Reservefonds
+  const rf = jr.reservefonds;
+  const minReserve = meta.herbouwwaarde * 0.005;
+  document.getElementById('reservefondsOutput').innerHTML = `
+    <div class="jr-row"><span class="k">Beginstand 1 jan ${meta.boekjaar}</span><span class="v">${fmtEur(rf.beginstand)}</span></div>
+    <div class="jr-row"><span class="k">Stortingen</span><span class="v pos">+ ${fmtEur(rf.stortingen)}</span></div>
+    ${rf.onttrekkingen > 0 ? `<div class="jr-row"><span class="k">Onttrekkingen</span><span class="v neg">− ${fmtEur(rf.onttrekkingen)}</span></div>` : ''}
+    <div class="jr-row total"><span class="k">Eindstand 31 dec ${meta.boekjaar}</span><span class="v ${rf.eindstand >= minReserve ? 'pos' : 'neg'}">${fmtEur(rf.eindstand)}</span></div>
+  `;
+  
+  // Reservefonds check
+  document.getElementById('reservefondsCheck').innerHTML = `
+    <div class="jr-row"><span class="k">Minimum (0,5% × herbouwwaarde)</span><span class="v">${fmtEur(minReserve)}</span></div>
+    <div class="jr-row"><span class="k">Huidig saldo</span><span class="v">${fmtEur(rf.eindstand)}</span></div>
+    <div class="jr-row total">
+      <span class="k">Status</span>
+      <span class="v ${rf.eindstand >= minReserve ? 'pos' : 'neg'}">${rf.eindstand >= minReserve ? '✓ Voldoende' : '⚠ Tekort ' + fmtEur(minReserve - rf.eindstand)}</span>
+    </div>
+    <div style="font-size:12px;color:var(--ink-4);margin-top:10px;font-family:'JetBrains Mono',monospace">
+      Aanbevolen bijdrage: ${fmtEur(minReserve / meta.nAppartementen)} / app / jaar
+    </div>
+  `;
+  
+  // Balans
+  const b = jr.balans;
+  document.getElementById('balansOutput').innerHTML = `
+    <div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-4);font-weight:600;padding-bottom:8px;border-bottom:1px solid var(--rule);margin-bottom:4px">Activa</div>
+      <div class="jr-row"><span class="k">Exploitatierekening</span><span class="v">${fmtEur(b.activa.exploitatierekening)}</span></div>
+      <div class="jr-row"><span class="k">Reserverekening</span><span class="v">${fmtEur(b.activa.reserverekening)}</span></div>
+      <div class="jr-row total"><span class="k">Totaal activa</span><span class="v">${fmtEur(b.activa.totaal)}</span></div>
+    </div>
+    <div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-4);font-weight:600;padding-bottom:8px;border-bottom:1px solid var(--rule);margin-bottom:4px">Passiva</div>
+      <div class="jr-row"><span class="k">Reservefonds</span><span class="v">${fmtEur(b.passiva.reservefonds)}</span></div>
+      <div class="jr-row"><span class="k">Exploitatieresultaat</span><span class="v ${b.passiva.exploitatieresultaat >= 0 ? 'pos' : 'neg'}">${fmtEur(b.passiva.exploitatieresultaat)}</span></div>
+      <div class="jr-row total"><span class="k">Totaal passiva</span><span class="v">${fmtEur(b.passiva.totaal)}</span></div>
+    </div>
+  `;
+  
+  // Compliance
+  const comp = state.compliance;
+  const circle = document.getElementById('scoreCircle');
+  const scoreEl = document.getElementById('scoreNum');
+  scoreEl.textContent = comp.pct + '%';
+  circle.className = 'score-circle ' + (comp.pct >= 70 ? 'good' : 'bad');
+  
+  let lastCat = '';
+  document.getElementById('complianceOutput').innerHTML = comp.items.map(item => {
+    let catHeader = '';
+    if (item.cat !== lastCat) {
+      lastCat = item.cat;
+      catHeader = `<div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink-4);font-weight:600;padding:14px 0 6px;border-top:1px solid var(--rule-soft);margin-top:4px">${item.cat}</div>`;
+    }
+    return `${catHeader}
+    <div class="compliance-item">
+      <div class="c-status ${item.status}" 
+           onclick="${item.status === 'manual' ? `toggleCompliance('${item.id}', this)` : ''}" 
+           title="${item.status === 'manual' ? 'Klik om handmatig te bevestigen' : ''}">
+        ${item.status === 'pass' ? '✓' : item.status === 'fail' ? '✗' : '○'}
+      </div>
+      <div style="flex:1">
+        <div>${item.title}</div>
+        <div class="c-ref">${item.ref}</div>
+      </div>
+      <span class="c-priority ${item.priority}">${item.priority}</span>
+    </div>`;
+  }).join('');
+}
+
+function toggleCompliance(id, el) {
+  const item = state.compliance.items.find(i => i.id === id);
+  if (!item) return;
+  if (item.status === 'manual') {
+    item.status = 'pass';
+    el.className = 'c-status pass';
+    el.textContent = '✓';
+    state.compliance.score++;
+    state.compliance.pct = Math.round((state.compliance.score / state.compliance.total) * 100);
+    updateScoreDisplay();
+  } else if (item.status === 'pass') {
+    item.status = 'manual';
+    el.className = 'c-status manual';
+    el.textContent = '○';
+    state.compliance.score--;
+    state.compliance.pct = Math.round((state.compliance.score / state.compliance.total) * 100);
+    updateScoreDisplay();
+  }
+}
+
+function updateScoreDisplay() {
+  const comp = state.compliance;
+  document.getElementById('scoreNum').textContent = comp.pct + '%';
+  document.getElementById('scoreCircle').className = 'score-circle ' + (comp.pct >= 70 ? 'good' : 'bad');
+}
+
+// ════════════════════════════════════════════════════
+// SAVE TO NOTION
+// ════════════════════════════════════════════════════
+async function saveToNotion() {
+  const notionKey = document.getElementById('notionKey').value.trim();
+  const dbId = document.getElementById('notionDbId').value.trim().replace(/-/g, '');
+  
+  if (!notionKey.startsWith('secret_') && !notionKey.startsWith('ntn_')) {
+    showNotionStatus('Notion API key niet ingesteld. Voer uw "secret_..." of "ntn_..." key in bovenaan.', 'error');
+    return;
+  }
+  if (dbId.length < 10) {
+    showNotionStatus('Notion Database ID niet ingesteld. Voer het 32-karakter ID in bovenaan.', 'error');
+    return;
+  }
+  
+  showNotionStatus('Opslaan in Notion...', 'loading');
+  
+  const jr = state.jaarrekening;
+  const meta = state.meta;
+  const comp = state.compliance;
+  const note = document.getElementById('runNote').value;
+  const status = document.getElementById('runStatus').value;
+  
+  // Build Notion page properties + content
+  const properties = {
+    "Name": {
+      "title": [{ "text": { "content": `${meta.vveNaam} — Jaarrekening ${meta.boekjaar}` } }]
+    },
+    "VvE": {
+      "rich_text": [{ "text": { "content": meta.vveNaam } }]
+    },
+    "Boekjaar": {
+      "rich_text": [{ "text": { "content": meta.boekjaar } }]
+    },
+    "Status": {
+      "select": { "name": status }
+    },
+    "Compliance score": {
+      "number": comp.pct
+    },
+    "Resultaat (€)": {
+      "number": Math.round(jr.exploitatie.resultaat)
+    },
+    "Reservefonds eindstand (€)": {
+      "number": Math.round(jr.reservefonds.eindstand)
+    },
+    "Transacties": {
+      "number": state.transactions.length
+    },
+    "Notitie": {
+      "rich_text": [{ "text": { "content": note } }]
+    }
+  };
+  
+  // Page content as markdown blocks
+  const content = [
+    { "object": "block", "type": "heading_2", "heading_2": { "rich_text": [{ "type": "text", "text": { "content": "Exploitatierekening" } }] } },
+    mkNotionRow('Bijdragen leden', fmtEur(jr.exploitatie.baten.bijdragenLeden)),
+    mkNotionRow('Overige baten', fmtEur(jr.exploitatie.baten.overigeBaten)),
+    mkNotionRow('Totaal baten', fmtEur(jr.exploitatie.baten.totaal)),
+    mkNotionRow('Onderhoud & reparaties', `− ${fmtEur(jr.exploitatie.lasten.onderhoud)}`),
+    mkNotionRow('Verzekering', `− ${fmtEur(jr.exploitatie.lasten.verzekering)}`),
+    mkNotionRow('Administratie', `− ${fmtEur(jr.exploitatie.lasten.administratie)}`),
+    mkNotionRow('Energie & utilities', `− ${fmtEur(jr.exploitatie.lasten.energie)}`),
+    mkNotionRow('Totaal lasten', `− ${fmtEur(jr.exploitatie.lasten.totaal)}`),
+    mkNotionRow('Resultaat', `${jr.exploitatie.resultaat >= 0 ? '+' : ''} ${fmtEur(jr.exploitatie.resultaat)}`),
+    { "object": "block", "type": "divider", "divider": {} },
+    { "object": "block", "type": "heading_2", "heading_2": { "rich_text": [{ "type": "text", "text": { "content": "Reservefonds" } }] } },
+    mkNotionRow('Beginstand', fmtEur(jr.reservefonds.beginstand)),
+    mkNotionRow('Stortingen', `+ ${fmtEur(jr.reservefonds.stortingen)}`),
+    mkNotionRow('Eindstand', fmtEur(jr.reservefonds.eindstand)),
+    { "object": "block", "type": "divider", "divider": {} },
+    { "object": "block", "type": "heading_2", "heading_2": { "rich_text": [{ "type": "text", "text": { "content": `Compliance — ${comp.pct}% (${comp.score}/${comp.total})` } }] } },
+    ...comp.items.filter(i => i.status === 'fail').map(i => ({
+      "object": "block", "type": "bulleted_list_item",
+      "bulleted_list_item": { "rich_text": [{ "type": "text", "text": { "content": `✗ ${i.title} (${i.ref})` } }] }
+    })),
+    { "object": "block", "type": "paragraph", "paragraph": { "rich_text": [{ "type": "text", "text": { "content": `Gegenereerd op ${new Date().toLocaleDateString('nl-NL')} door Ordo VvE Agent` } }] } }
+  ];
+  
+  try {
+    const resp = await fetch('https://api.notion.com/v1/pages', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${notionKey}`,
+        'Content-Type': 'application/json',
+        'Notion-Version': '2022-06-28'
+      },
+      body: JSON.stringify({
+        parent: { database_id: dbId },
+        properties,
+        children: content
+      })
+    });
+    
+    if (!resp.ok) {
+      const err = await resp.json();
+      throw new Error(err.message || `HTTP ${resp.status}`);
+    }
+    
+    const page = await resp.json();
+    const pageUrl = page.url || `https://notion.so/${page.id.replace(/-/g,'')}`;
+    showNotionStatus(`✓ Opgeslagen in Notion — <a href="${pageUrl}" target="_blank" style="color:var(--green);text-decoration:underline">Open pagina →</a>`, 'success');
+  } catch(e) {
+    showNotionStatus(`Fout bij opslaan: ${e.message}. Controleer uw API key, database ID, en of de database de juiste properties heeft.`, 'error');
+    console.error('Notion save error:', e);
+  }
+}
+
+function mkNotionRow(key, val) {
+  return {
+    "object": "block", "type": "paragraph",
+    "paragraph": { "rich_text": [
+      { "type": "text", "text": { "content": `${key}: ` }, "annotations": { "bold": false, "color": "gray" } },
+      { "type": "text", "text": { "content": val }, "annotations": { "bold": true } }
+    ]}
+  };
+}
+
+function showNotionStatus(msg, type) {
+  const el = document.getElementById('notionSaveStatus');
+  el.innerHTML = msg;
+  el.className = `notion-status ${type}`;
+}
+
+// ════════════════════════════════════════════════════
+// PRINT
+// ════════════════════════════════════════════════════
+function printJaarrekening() {
+  window.print();
+}
+
+// ════════════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════════════
+function goTo(screenNum) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(`screen${screenNum}`).classList.add('active');
+  document.querySelectorAll('[id^=step-indicator-]').forEach(el => {
+    const n = parseInt(el.id.split('-').pop());
+    el.classList.remove('active', 'done');
+    if (n < screenNum) el.classList.add('done');
+    else if (n === screenNum) el.classList.add('active');
+  });
+  document.getElementById('navStep').textContent = `Stap ${screenNum} van 3`;
+  window.scrollTo(0, 0);
+}
+
+// ════════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════════
+function fmtEur(n) {
+  if (isNaN(n)) return '€ —';
+  return '€ ' + Math.abs(n).toLocaleString('nl-NL', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+
+function showLoading(text, sub) {
+  document.getElementById('loadingText').textContent = text;
+  document.getElementById('loadingSubText').textContent = sub;
+  document.getElementById('loadingOverlay').classList.remove('hidden');
+}
+
+function updateLoadingText(text, sub) {
+  document.getElementById('loadingText').textContent = text;
+  document.getElementById('loadingSubText').textContent = sub;
+}
+
+function hideLoading() {
+  document.getElementById('loadingOverlay').classList.add('hidden');
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function showAlert(screen, msg, type) {
+  const el = document.getElementById(`alert${screen.charAt(0).toUpperCase() + screen.slice(1)}`);
+  if (!el) return;
+  el.innerHTML = msg;
+  el.className = `alert ${type}`;
+}
+
+function clearAlert(screen) {
+  const el = document.getElementById(`alert${screen.charAt(0).toUpperCase() + screen.slice(1)}`);
+  if (el) { el.innerHTML = ''; el.className = 'alert'; }
+}
+
+// Init
+updateKeyStatus();
+</script>
+</body>
+</html>
